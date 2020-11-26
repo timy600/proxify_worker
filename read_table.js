@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
+// SQLITE DATABASE CONNECTION
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./proxify_urls.db');
 
 const sql = 'SELECT * FROM urlStatus';
 
-// SEND TO THE QUEUE ==========================================
+// SEND TO THE QUEUE
 var amqp = require('amqplib/callback_api');
 amqp.connect('amqp://localhost', function(error0, connection) {
     if (error0) {
@@ -16,14 +17,13 @@ amqp.connect('amqp://localhost', function(error0, connection) {
             throw error1;
         }
 
-        var queue = 'url_queue';
-        //var msg = process.argv.slice(2).join(' ') || "Hello World!";
+        var exchange = 'logs';
 
-        channel.assertQueue(queue, {
-            durable: true
+        channel.assertExchange(exchange,'fanout', {
+            durable: false
         });
 
-        // SELECT ALL ROWS ==========================================
+        // SELECT ALL ROWS AND START PROCESSING
         db.all(sql,(err, rows ) => {
             if (err) {
                 throw err;
@@ -31,14 +31,13 @@ amqp.connect('amqp://localhost', function(error0, connection) {
             rows.forEach( row => {
                 db.run('UPDATE urlStatus SET status = "PROCESSING" WHERE url = "${row.url}"');
                 var msg = process.argv.slice(2).join(' ') || row.url;
-                channel.sendToQueue(queue, Buffer.from(msg), {
-                    persistent: true
-                });
+                channel.publish(exchange, '', Buffer.from(msg));
                 console.log(" [x] Sent %s", msg);
             });
         });
 
     });
+    // Close the database connection
     setTimeout(function() {
         connection.close();
         process.exit(0);
@@ -49,6 +48,4 @@ amqp.connect('amqp://localhost', function(error0, connection) {
             console.log('Close the database connection.')
         });
     }, 500);
-    // Close the database connection ==============================
-
 });

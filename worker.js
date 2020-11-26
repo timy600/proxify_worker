@@ -10,8 +10,6 @@ function update_status(sql_query) {
 }
 
 const axios = require('axios');
-let status = "PROCESSING";
-let sql = "";
 async function check_status(url_param) {
     await axios.get(url_param)
 
@@ -35,23 +33,25 @@ amqp.connect('amqp://localhost', function(error0, connection) {
             throw error1;
         }
 
-        var queue = 'url_queue';
-        channel.assertQueue(queue, {
-            durable: true
+        var exchange = 'logs';
+        channel.assertExchange(exchange, 'fanout', {
+            durable: false
         });
-
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-
-        channel.consume(queue, function(msg) {
+        channel.assertQueue('', {
+            exclusive: true
+        }, function(error2, q) {
+        if (error2) {
+            throw error2
+        }
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
+        channel.bindQueue(q.queue, exchange, '');
+        channel.consume(q.queue, function(msg) {
             console.log(" [x] Received %s", msg.content.toString());
-            // 1 GET NEXT AVAILABLE JOB ===================================================================
             var url = msg.content.toString();
-            // 2 CALL THE URL FOR THE JOB =================================================================
             var http_code = check_status(url);
-            // 3 STORE THE RETURNED STATUS ================================================================
-
         }, {
             noAck: true
+        });
         });
     });
 });

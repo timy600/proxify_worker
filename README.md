@@ -18,5 +18,9 @@ The assignment specified the use of a database table (so no Neo4J in this case).
 Here comes the magic. Or, well, the basic functionality that you asked for.
 
 I made one basic script for this assignment that just reads the entire **urlStatus** table and process each row.
-Just run ```node read_table.js``` in a new terminal. Once a job as been assigned to as particular url, its status will be changed to "PROCESSING", so if the worker is not launched, you should see an entire table with this status.
+Just run ```node read_table.js``` in a new terminal. Once a job as been assigned to a particular url, its status will be changed to "PROCESSING", so if the worker is not launched, you should see an entire table with this status.
 
+### TL;DR
+* Make sure RabbitMQ is installed
+* Start the worker in a terminal: ```node worker.js```
+* Send jobs in a second terminal: ```node read_table.js```

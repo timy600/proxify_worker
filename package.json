@@ -1,0 +1,16 @@
+{
+  "name": "proxify",
+  "version": "1.0.0",
+  "description": "Distributed workers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thibaut Chevée",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.6.0",
+    "axios": "^0.21.0",
+    "sqlite3": "^5.0.0"
+  }
+}
